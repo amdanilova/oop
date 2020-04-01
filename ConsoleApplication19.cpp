@@ -39,12 +39,12 @@ public:
 	Pen();
 	~Pen();
 	void print();
-
+	Pen<T>& operator=(const Pen<T>& y);
 	Pen<T>& operator+(const Pen<T>& x);
+	Pen(const Pen<T>& copir);
 };
-template<class T> Pen<T>::Pen() {
-	StationaryAnother<T>::StationaryAnother();
-	size = (double)(rand() % 200) / 10;
+template<class T> Pen<T>::Pen() : StationaryAnother<T>::StationaryAnother(){
+	size = (T)(rand() % 200) / 10;
 
 	strcpy(color2, "red");
 }
@@ -76,7 +76,33 @@ template <class T> Pen<T>& Pen<T>::operator+(const Pen<T>& x) {
 	cout << "Itogovyi size:" << n1.size << endl;
 	return *this;
 }
+template <class T> Pen<T>& Pen<T>::operator=(const Pen<T>& y)  {
+StationaryAnother<T>& StationaryAnother<T>::operator=(const StationaryAnother<T> & y);
+	delete[]color2;
+	color2 = new char[strlen(y.color2) + 1];
+	strcpy(color2, y.color2);
+	return*this;
+}
+//template <class T> Pen<T>::Pen(const Pen<T>& copir) : StationaryAnother<T>::StationaryAnother( const StationaryAnother<T>& copir) {
+//	
+//	size = copir.size;
+//	delete[]color2;
+//	color2 = new char[strlen(copir.color2) + 1];
+//	strcpy(color2, copir.color2);
+//
+//}
+template <class T>
+Pen<T>::Pen(const Pen<T>& copir) : StationaryAnother<T>::StationaryAnother( copir) {
+	
+	size =copir.size;
+	
+	delete[] color2;
 
+	color2 = new char[strlen(copir.color2) + 1];
+
+	strcpy(color2, copir.color2);
+
+}
 
 template <class T>
 StationaryAnother<T>::StationaryAnother()
@@ -162,7 +188,7 @@ template <class T> StationaryAnother<T>& StationaryAnother<T>::operator+(const S
 template <class T> StationaryAnother<T>& StationaryAnother<T>::operator=(const StationaryAnother<T>& y) {
 
 	kolvo = y.kolvo;
-	stoimost = y.kolvo;
+	stoimost = y.stoimost;
 	delete[] name;
 
 	name = new char[strlen(y.name) + 1];
@@ -220,6 +246,10 @@ int main() {
 	Pen<double> object9;//проверка на тип double 
 	cout << "Object 9 proizvodnogo klassa tip double" << endl;
 	object9.print();
+	Pen<double> object10;
+	cout<< "Object 10 proizvodnogo klassa tip double" << endl;
+	object10 = object9;
+	object10.print();
 
 	system("pause");
 
