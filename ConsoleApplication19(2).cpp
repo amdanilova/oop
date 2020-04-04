@@ -20,31 +20,13 @@ public:
 	StationaryAnother(const char* a, int kolvo, T c);
 	~StationaryAnother();
 	void input();
-
-
 	virtual void print();
 	StationaryAnother(const StationaryAnother<T>& copir);
 	void showkolvo();
 	void operator>(const StationaryAnother<T>& m);
 	StationaryAnother<T>& operator+(const StationaryAnother<T>& x);
 	StationaryAnother<T>& operator=(const StationaryAnother<T>& y);
-
 	StationaryAnother<T>& operator+=(const StationaryAnother<T>& z);
-};
-
-
-template <class T> class Pen : public virtual StationaryAnother<T> {
-protected:
-	T size;
-	char* color2 = new char[25];
-public:
-	/*Pen(void);*/
-	Pen();
-	~Pen();
-	void print(void);
-	Pen<T>& operator=(const Pen<T>& y);
-	Pen<T>& operator+(const Pen<T>& x);
-	Pen(const Pen<T>& copir);
 };
 template <class T> class Pencil : public virtual StationaryAnother<T> {
 protected:
@@ -59,76 +41,87 @@ public:
 	Pencil<T>& operator+(const Pencil<T>& x);
 	Pencil(const Pencil<T>& copir);
 };
-template <class T> class nabor : public Pen<T>, public Pencil<T> {
+template <class T> class Pen : public virtual StationaryAnother<T> {
+protected:
+	T size;
+	char* color2 = new char[25];
+public:
+	/*Pen(void);*/
+	Pen();
+	~Pen();
+	void print(void);
+	Pen<T>& operator=(const Pen<T>& y);
+	Pen<T>& operator+(const Pen<T>& x);
+	Pen(const Pen<T>& copir);
+};
+
+
+template <class T>
+class Nabor : public Pen<T>, public Pencil<T> {
 protected:
 	T priceofnabor;
-	char* size = new char[25];
+	char* size;
 public:
-	nabor();
-	nabor(const nabor<T>& copir);
-	~nabor();
+	Nabor();
+	Nabor(const Nabor<T>& copir);
+	~Nabor();
 	void print(void);
 };
 
-template <class T>
-nabor<T>::nabor(const nabor<T>& copir) : StationaryAnother<T>::StationaryAnother(copir) {
-
-	size = copir.size;
-	delete[] Pen<T>::color2;
-	delete[] Pencil<T>::color3;
-
-	Pencil<T>::color3 = new char[strlen(copir.color3) + 1];
-
-	strcpy(Pencil<T>::color3, copir.color3);
-	Pen<T>::color2 = new char[strlen(copir.color2) + 1];
-
-	strcpy(Pen<T>::color2, copir.color2);
-
-}
-
-template<class T> nabor<T>::~nabor() {
-	delete[]size;
-	cout << "Memory is clear";
-	cout << endl;
-}
-
-
-template<class T> nabor<T>::nabor() : StationaryAnother<T>::StationaryAnother() {
+template<class T>
+Nabor<T>::Nabor() : Pen<T>::Pen(), Pencil<T>::Pencil() {
 	priceofnabor = (T)(rand() % 20000) / 10;
-
+	size = new char[25];
 	strcpy(size, "standart");
+}
+
+template <class T>
+Nabor<T>::Nabor(const Nabor<T>& copir) : Pen<T>::Pen(copir), Pencil<T>::Pencil(copir) {
+	cout << "Copy constructor Nabor(other)" << endl;
+
+	size = new char[strlen(copir.size) + 1];
+	strcpy(size, copir.size);
+}
+
+template<class T> Nabor<T>::~Nabor() {
+
+	delete[] size;
+
+	Pen<T>::~Pen();
+	Pencil<T>::~Pencil();
 
 }
 
-template<class T> 
-void nabor<T>::print() {
+
+template<class T>
+void Nabor<T>::print() {
 	cout << "Print from Nabor size: " << size << endl << "Include:" << endl;
 	Pen<T>::print();
 	Pencil<T>::print();
 }
 
+
+
+
+
+
 template<class T> Pencil<T>::Pencil() : StationaryAnother<T>::StationaryAnother() {
 	size2 = (T)(rand() % 200) / 10;
-
 	strcpy(color3, "blue");
 
 }
 template <class T> void Pencil<T>::print() {
 	StationaryAnother<T>::print();
-
-	/*cout << " " << "name etogo objecta:" << StationaryAnother<T>::name << endl;
-
-	cout << " " << "stoimost etogo objecta:" << StationaryAnother<T>::stoimost << endl;
-	cout << " " << "kolvo shtuk etogo objecta:" << StationaryAnother<T>::kolvo << endl;*/
 	cout << " " << "color etogo objecta:" << color3 << endl;
 	cout << " " << "Size etogo objecta:" << size2 << endl;
-
 	cout << endl;
 }
 template<class T> Pencil<T>::~Pencil() {
 	delete[]color3;
 	cout << "Memory is clear";
 	cout << endl;
+	StationaryAnother<T>::~StationaryAnother();
+
 }
 template <class T> Pencil<T>& Pencil<T>::operator+(const Pencil<T>& x) {
 	Pencil n1;
@@ -151,17 +144,14 @@ template <class T>
 Pencil<T>::Pencil(const Pencil<T>& copir) : StationaryAnother<T>::StationaryAnother(copir) {
 
 	size2 = copir.size2;
-
 	delete[] color3;
 
 	color3 = new char[strlen(copir.color3) + 1];
-
 	strcpy(color3, copir.color3);
 
 }
 template<class T> Pen<T>::Pen() : StationaryAnother<T>::StationaryAnother() {
 	size = (T)(rand() % 200) / 10;
-
 	strcpy(color2, "red");
 }
 
@@ -169,10 +159,6 @@ template <class T>
 void Pen<T>::print() {
 
 	StationaryAnother<T>::print();
-	/*cout << " " << "name etogo objecta:" << StationaryAnother<T>::name << endl;
-
-	cout << " " << "stoimost etogo objecta:" << StationaryAnother<T>::stoimost << endl;
-	cout << " " << "kolvo shtuk etogo objecta:" << StationaryAnother<T>::kolvo << endl;*/
 	cout << " " << "color etogo objecta:" << color2 << endl;
 	cout << " " << "Size etogo objecta:" << size << endl;
 	cout << endl;
@@ -182,6 +168,8 @@ Pen<T>::~Pen() {
 	delete[]color2;
 	cout << "Memory is clear";
 	cout << endl;
+	StationaryAnother<T>::~StationaryAnother();
+
 }
 template <class T> Pen<T>& Pen<T>::operator+(const Pen<T>& x) {
 	Pen n1;
@@ -204,11 +192,8 @@ template <class T>
 Pen<T>::Pen(const Pen<T>& copir) : StationaryAnother<T>::StationaryAnother(copir) {
 
 	size = copir.size;
-
 	delete[] color2;
-
 	color2 = new char[strlen(copir.color2) + 1];
-
 	strcpy(color2, copir.color2);
 
 }
@@ -216,7 +201,6 @@ Pen<T>::Pen(const Pen<T>& copir) : StationaryAnother<T>::StationaryAnother(copir
 template <class T>
 StationaryAnother<T>::StationaryAnother()
 {
-	//name = new char[strlen("ErichKrause") + 1];
 	strcpy(name, "ErichKrause");
 	srand(time(0));
 	kolvo = (rand() % 200) + 1;
@@ -265,9 +249,7 @@ StationaryAnother<T>::StationaryAnother(const StationaryAnother<T>& copir) {
 	kolvo = copir.kolvo;
 	stoimost = copir.stoimost;
 	delete[] name;
-
 	name = new char[strlen(copir.name) + 1];
-
 	strcpy(name, copir.name);
 
 }
@@ -299,9 +281,7 @@ template <class T> StationaryAnother<T>& StationaryAnother<T>::operator=(const S
 	kolvo = y.kolvo;
 	stoimost = y.stoimost;
 	delete[] name;
-
 	name = new char[strlen(y.name) + 1];
-
 	strcpy(name, y.name);
 	return*this;
 }
@@ -315,8 +295,6 @@ template <class T> StationaryAnother<T>& StationaryAnother<T>::operator+=(const 
 	name = new char[strlen(z.name) + 1 + strlen(name)];
 	strcpy(name, strcat(name2, z.name));
 	delete[]name2;
-
-
 	return *this;
 
 }
@@ -348,10 +326,10 @@ int main() {
 	Pen<int> object7;//объект производного класса  + вызывается конструктор базового класса
 	cout << "Object 7 proizvodnogo klassa" << endl;
 	object7.print();//метод производного класса
-
-	Pen<int> object8 = object6 + object7;//метод сложения производного класса
 	cout << "Object 8 proizvodnogo klassa slozheniye 6 i 7 objecta" << endl;
-	object8.print();
+	Pen<int> object8 = object6 + object7;//метод сложения производного класса
+
+
 	Pen<double> object9;//проверка на тип double 
 	cout << "Object 9 proizvodnogo klassa tip double" << endl;
 	object9.print();
@@ -370,15 +348,30 @@ int main() {
 	object13 = object12;
 	object13.print();
 
-	nabor<double> object14;
+	Nabor<double> object14;
 	StationaryAnother<double>& aPen = object10;
 	StationaryAnother<double>& aPencil = object12;
-	StationaryAnother<double>& aNabor = object14;
 
+	StationaryAnother<double>& aNabor = object14;
+	cout << "object 10  pen" << endl;
 	aPen.print();
+	cout << "object 12 pencil" << endl;
 	aPencil.print();
+	cout << "object 14 nabor" << endl;
 	aNabor.print();
+	cout << "object 15 nabor" << endl;
+	Nabor<int>object15;
+	object15.print();
 
 	system("pause");
 	return 0;
 }
+
+
+//// Советы по началу работы 
+////   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
+////   2. В окне Team Explorer можно подключиться к системе управления версиями.
+////   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
+////   4. В окне "Список ошибок" можно просматривать ошибки.
+////   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
+////   6. Чтобы снова открыть этот проект позж
