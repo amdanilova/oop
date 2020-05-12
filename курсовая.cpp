@@ -2,6 +2,9 @@
 //
 
 #include <iostream>
+#include <vector>
+#include <queue>
+
 using namespace std;
 
 class CompareException : public exception {};
@@ -19,6 +22,8 @@ public:
     virtual bool operator<(const IStationary& other) = 0;
     virtual bool operator==(const IStationary& other) = 0;
     virtual void print() = 0;
+    virtual void save(ostream& f) = 0;
+    virtual void load(ostream& f) = 0;
 };
 
 class WritingStationary : public IStationary {
@@ -28,7 +33,12 @@ public:
     WritingStationary(string name = "", double price = 0, string color = "blue") :
         IStationary(name, price), color(color) {}
 
+    ~WritingStationary() {}
+
     void print();
+
+    void save(ostream& f) {};
+    void load(ostream& f) {};
 };
 
 class Pen : public WritingStationary {
@@ -55,24 +65,33 @@ public:
         string color = "blue",
         double thickness = 0.5) : WritingStationary(name, price, color),
         thickness(thickness) {}
-    void print();
+
     ~Pencil() {};
+
     bool operator<(const IStationary& other);
     bool operator==(const IStationary& other);
+    void print();
 };
 
 class DrawingStationary : public IStationary {
-protected:
+public:
     string category;
-    DrawingStationary(string name = "", double price = 0,string category="standart" ) : IStationary(name, price) {};
-    
+    DrawingStationary(string name = "", double price = 0, string category = "standart") : IStationary(name, price) {};
+
     void print();
+    void save(ostream& f) {};
+    void load(ostream& f) {};
 };
 
 class Circular : public DrawingStationary {
 public:
     string size;
-    Circular(string name = "", double price = 0, string category = "standart" , string size = "big") : DrawingStationary(name, price, category),size(size) {};
+    Circular(string name = "", double price = 0, string category = "standart", string size = "big") : DrawingStationary(name, price, category), size(size) {};
+
+    ~Circular() {}
+
+    bool operator<(const IStationary& other);
+    bool operator==(const IStationary& other);
     void print();
 };
 
@@ -81,7 +100,12 @@ public:
     string material;
     double width;
     double height;
-    Board(string name = "", double price = 0, string category = "standart", string size = "big", string material = "paper",double width=5.5, double height=7.7) : DrawingStationary(name, price, category),material(material),width(width),height(height) {};
+    Board(string name = "", double price = 0, string category = "standart", string size = "big", string material = "paper", double width = 5.5, double height = 7.7) : DrawingStationary(name, price, category), material(material), width(width), height(height) {};
+
+    ~Board() {}
+
+    bool operator<(const IStationary& other);
+    bool operator==(const IStationary& other);
     void print();
 };
 
@@ -89,23 +113,67 @@ class PaintingStationary : public IStationary {
 protected:
     string type;
 public:
-    PaintingStationary(string name = "", double price = 0, string type="new") : IStationary(name, price),type(type) {};
+    PaintingStationary(string name = "", double price = 0, string type = "new") : IStationary(name, price), type(type) {};
     void print();
-
+    void save(ostream& f) {};
+    void load(ostream& f) {};
 };
 
 class Paints : public PaintingStationary {
 public:
     int colorsCount;
-    Paints(string name = "", double price = 0, string type = "new", int colorsCount=10) : PaintingStationary(name, price, type),colorsCount(colorsCount) {};
+    Paints(string name = "", double price = 0, string type = "pastel", int colorsCount = 10) :
+        PaintingStationary(name, price, type), colorsCount(colorsCount) {};
+
+    ~Paints() {}
+
+    bool operator<(const IStationary& other);
+    bool operator==(const IStationary& other);
     void print();
 };
 
 class Brush : public PaintingStationary {
 public:
     int thickness;
-    Brush(string name = "", double price = 0, string type = "new", int thickness=4 ) : PaintingStationary(name, price, type),thickness(thickness) {};
+    Brush(string name = "", double price = 0, string type = "new", int thickness = 4) : PaintingStationary(name, price, type), thickness(thickness) {};
+
+    ~Brush() {}
+
+    bool operator<(const IStationary& other);
+    bool operator==(const IStationary& other);
     void print();
+};
+
+
+class BaseContainer : public vector<IStationary*> {};
+
+/*
+template<class T>
+class StationaryContainer : private BaseContainer {
+public:
+    void push(T *stationary) {
+        BaseContainer::push(stationary);
+    }
+
+    long long size() {
+        return BaseContainer::size();
+    }
+
+    void pop() {
+        BaseContainer::pop();
+    }
+
+    T * front() {
+        return (T *) BaseContainer::front();
+    }
+};
+*/
+class StationaryContainer : public BaseContainer {
+public:
+    StationaryContainer() {}
+    void push(IStationary* o) {
+        BaseContainer::push_back(o);
+    }
 };
 
 void WritingStationary::print() {
@@ -132,6 +200,14 @@ bool Pen::operator==(const IStationary& other) {
     return (name == pen.name && price == pen.price
         && color == pen.color && type == pen.type && model == pen.model);
 }
+
+void Pen::print() {
+    cout << "Pen(";
+    WritingStationary::print();
+    cout << ", type=" << type << ", ";
+    cout << "model=" << model << ")" << endl;
+}
+
 bool Pencil::operator<(const IStationary& other) {
     if (typeid(other) != typeid(Pencil)) {
         throw CompareException();
@@ -150,14 +226,7 @@ bool Pencil::operator==(const IStationary& other) {
     const Pencil& pencil = (Pencil&)other;
 
     return (name == pencil.name && price == pencil.price
-        && color == pencil.color && thickness== pencil.thickness );
-}
-
-void Pen::print() {
-    cout << "Pen(";
-    WritingStationary::print();
-    cout << ", type=" << type << ", ";
-    cout << "model=" << model << ")" << endl;
+        && color == pencil.color && thickness == pencil.thickness);
 }
 
 void Pencil::print() {
@@ -165,118 +234,190 @@ void Pencil::print() {
     WritingStationary::print();
     cout << ", thickness=" << thickness << ")" << endl;
 }
+
 void PaintingStationary::print() {
     cout << name << ", price=" << price << ", " << "type=" << type;
 }
+
+bool Paints::operator<(const IStationary& other) {
+    if (typeid(other) != typeid(Paints)) {
+        throw CompareException();
+    }
+
+    const Paints& paints = (Paints&)other;
+
+    return (name < paints.name ? true : (colorsCount < paints.colorsCount ? true : false));
+}
+
+bool Paints::operator==(const IStationary& other) {
+    if (typeid(other) != typeid(Paints)) {
+        return false;
+    }
+
+    const Paints& paints = (Paints&)other;
+
+    return (name == paints.name && price == paints.price
+        && colorsCount == paints.colorsCount && type == paints.type);
+}
+
 void Paints::print() {
     cout << "Paints(";
     PaintingStationary::print();
-    cout << "Count of colors=" << colorsCount <<")"<<endl ;
-   
+    cout << ", count of colors=" << colorsCount << ")" << endl;
 }
+
+bool Brush::operator<(const IStationary& other) {
+    if (typeid(other) != typeid(Brush)) {
+        throw CompareException();
+    }
+
+    const Brush& brush = (Brush&)other;
+
+    return (name < brush.name ? true : (thickness < brush.thickness ? true : false));
+}
+
+bool Brush::operator==(const IStationary& other) {
+    if (typeid(other) != typeid(Brush)) {
+        return false;
+    }
+
+    const Brush& brush = (Brush&)other;
+
+    return (name == brush.name && price == brush.price
+        && thickness == brush.thickness && type == brush.type);
+}
+
 void Brush::print() {
     cout << "Brush(";
     PaintingStationary::print();
-    cout << "thickness of brush" << thickness << ")" << endl;
+    cout << ", thickness of brush=" << thickness << ")" << endl;
 }
 
 void DrawingStationary::print() {
     cout << name << ", price=" << price << ", " << "category=" << category;
 }
+
+bool Circular::operator<(const IStationary& other) {
+    if (typeid(other) != typeid(Circular)) {
+        throw CompareException();
+    }
+
+    const Circular& circular = (Circular&)other;
+
+    return (name < circular.name ? true : (size < circular.size ? true : false));
+}
+
+bool Circular::operator==(const IStationary& other) {
+    if (typeid(other) != typeid(Circular)) {
+        return false;
+    }
+
+    const Circular& circular = (Circular&)other;
+
+    return (name == circular.name && price == circular.price
+        && category == circular.category && size == circular.size);
+}
+
 void Circular::print() {
     cout << "Circular(";
     DrawingStationary::print();
-    cout << "Size of circular=" << size << ")" << endl;
-
+    cout << ", size of circular=" << size << ")" << endl;
 }
+
+bool Board::operator<(const IStationary& other) {
+    if (typeid(other) != typeid(Board)) {
+        throw CompareException();
+    }
+
+    const Board& board = (Board&)other;
+
+    return (name < board.name ? true : (width * height < board.width * board.height ? true : false));
+}
+
+bool Board::operator==(const IStationary& other) {
+    if (typeid(other) != typeid(Board)) {
+        return false;
+    }
+
+    const Board& board = (Board&)other;
+
+    return (name == board.name && price == board.price
+        && category == board.category && material == board.material
+        && height == board.height && width == board.width);
+}
+
 void Board::print() {
     cout << "Board(";
     DrawingStationary::print();
-    cout << "material of board" << material << ")" << endl;
-    cout << "width of board" << width << ")" << endl;
-    cout << "height" << height<< ")" << endl;
+    cout << ", material of board=" << material;
+    cout << ", width * height=" << width << " * " << height << ")" << endl;
 }
 
-/*
-void DrawingStationary::print() {
-    cout << "category" << category << endl;
 
-}
-DrawingStationary::DrawingStationary() {};
-
-
-void Circular::print() {
-    cout << "size" << size << endl;
-}
-
-Circular::Circular() {}
-
-void Board::print() {
-    cout << "material" << material << endl;
-    cout << "width" << width << endl;
-    cout << "height" << height << endl;
-
+void print_main_menu() {
+    cout << "MAIN MENU" << endl;
+    cout << "1. Add Pen" << endl;
+    cout << "2. Add Pencil" << endl;
+    cout << "3. Add Brush" << endl;
+    cout << "4. Print All" << endl;
+    cout << "5. Search" << endl;
+    cout << "6. Exit" << endl;
 }
 
-Board::Board(double width=10.5, double height=12.5) {
+int get_main_menu() {
+    int m;
+    do {
+        print_main_menu();
+        cin >> m;
+    } while (m < 0 || m > 6);
 
-    width = (rand() % 2000) / 10;
-    height = (rand() % 2000) / 10;
-
+    return m;
 }
-
-void PaintingStationary::print() {
-    cout << "type" << type << endl;
-}
-
-void Paints::print() {
-    cout << "colorsCount" << colorsCount << endl;
-}
-
-Paints::Paints(int colorsCount = 10) {
-    colorsCount = 1 + rand() % 30;
-}
-
-void Brush::print() {
-    cout << "thickness" << thickness<< endl;
-
-
-}
-
-Brush::Brush(int thickness) {
-    thickness = 1 + rand() % 12;
-}
-*/
 
 int main() {
-    Pen pen1("ErichKrause", 20, "blue", "EK", "PL-1");
-    Pen pen2("ErichKrause", 25, "black", "EK", "PL-2");
-    Pen pen3("ErichKrause", 35, "black", "EK", "PLS-3");
-    Pen pen4("ErichKrause", 25, "black", "EK", "PL-2");
+    StationaryContainer stationaryContainer;
+    double price;
+    Pen* pen;
+    Pencil* pencil;
+    Brush* brush;
 
-    IStationary* s;
+    int m = get_main_menu();
 
-    s = &pen1;
+    while (m != 6) {
+        switch (m)
+        {
+        case 1:
+            price = rand() % 30 + 20;
+            pen = new Pen("ErichKrause", price, "blue", "EK", "PL-1");
+            stationaryContainer.push(pen);
 
-    pen1.print();
-    pen2.print();
-    pen3.print();
+            break;
+        case 2:
+            price = rand() % 30 + 60;
+            pencil = new Pencil("Koch-i-noor", price, "black", 1.0);
+            stationaryContainer.push(pencil);
+            break;
 
-    s->print();
+        case 3:
+            price = rand() % 100 + 100;
+            brush = new Brush("Masters", price, "horse", 4);
+            stationaryContainer.push(brush);
+            break;
 
-    cout << "pen1 < pen2: " << (pen1 < pen2) << endl;
-    cout << "pen1 == pen2: " << (pen1 == pen2) << endl;
-    cout << "pen4 == pen2: " << (pen4 == pen2) << endl;
-    Pencil pencil1("ErichKrause", 20, "blue", 3.3);
-    Pencil pencil2("ErichKrause", 25, "black", 4.8);
-    IStationary* p;
+        case 4:
+            for (auto st : stationaryContainer) {
+                st->print();
+            }
+            break;
 
-    p = &pencil1;
-    pencil1.print();
-    pencil2.print();
-    cout << "pencil1 < pencil2: " << (pencil1 < pencil2) << endl;
-    cout << "pencil1 == pencil2: " << (pencil1 == pencil2) << endl;
-    system("pause");
-    return 0;
-    
-}
+        case 5:
+            /* code */
+            break;
+
+
+        default:
+            break;
+        }
+
+        m = get_main_menu();
+    }
